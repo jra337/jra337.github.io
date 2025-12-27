@@ -13,10 +13,23 @@
 			payload:{arg}
 		});/* }}} */
 	};
-
   const log = (...args)=>logHtml('',...args);
   const warn = (...args)=>logHtml('warning',...args);
   const error = (...args)=>logHtml('error',...args);
+
+	sql2objArr = function(query,db) {
+		let output = [];/* {{{ */
+		try {
+	    db.exec({
+	      sql: query,
+	      rowMode: 'object', // 'array' (default), 'object', or 'stmt'
+				resultRows: output,
+	    });
+			return output;
+		} catch(e) {
+			error(e);
+		};/* }}} */
+	};
 
 	importScripts('/jswasm/sqlite3.js');
 	importScripts('/js/crypto.js');
@@ -32,35 +45,27 @@
 			.then(r => r.arrayBuffer())
 			.then(r => decrypt(r,password));
 
-		sql2objArr = function(query,db) {
-			let output = [];/* {{{ */
-			try {
-		    db.exec({
-		      sql: query,
-		      rowMode: 'object', // 'array' (default), 'object', or 'stmt'
-					resultRows: output,
-		    });
-				return output;
-			} catch(e) {
-				error(e);
-			};/* }}} */
-		};
-
 		// assuming arrayBuffer contains the result of the above operation...
 		const p = sqlite3.wasm.allocFromTypedArray(arrayBuffer);
-		const db = new oo.DB();
+//		const db = new oo.DB();
+		const db = await sqlite3.installOpfsSAHPoolVfs()
+			.then((poolUtil) => {
+					poolUtil.importDb("/dartball.sqlite3",arrayBuffer);
+					return new poolUtil.OpfsSAHPoolDb("/dartball.sqlite3");
+			});
 		const rc = capi.sqlite3_deserialize(
 			db.pointer, 'main', p, arrayBuffer.byteLength, arrayBuffer.byteLength,
 			sqlite3.capi.SQLITE_DESERIALIZE_FREEONCLOSE
 		);
 		db.checkRc(rc);
-		debugger;
-		oo.OpfsDb.importDb("dartball.sqlite3", arrayBuffer);
 
 		log("sqlite3 version",capi.sqlite3_libversion(), capi.sqlite3_sourceid());
 		log((oo.OpfsDb) ? 'Opfs available' : 'Opfs NOT available');
 		log("database bytelength = ",arrayBuffer.byteLength);
    	log("transient db =",db.filename);
+
+//		oo.OpfsDb.importDb("dartball.sqlite3", arrayBuffer);
+
 		
 		try {
 			//  query database{{{
