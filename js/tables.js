@@ -67,7 +67,6 @@ class dartball {
 
 		/* tfoot */
 		if (typeof teamSummary !== 'undefined') {
-			debugger;
 			let tfoot = table.createTFoot();
 			tr = tfoot.insertRow();
 			for (const key in schedule[0]) {
