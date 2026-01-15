@@ -95,7 +95,7 @@
 				+', h3'
 				+', e'
 				+', r'
-				+', r AS rbi'
+				+', rbi'
 				+', xrc AS arc'
 				+', gxrc AS garc'
 				+', avg'
